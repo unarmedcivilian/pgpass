@@ -36,26 +36,28 @@ func Password(host, user string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 	return PasswordFrom(host, user, f)
 }
 
 // UpdateURL injects password into URL if not already provided.
 // Password will be loaded from the default pgpass file.
-func UpdateURL(dburl string) (string, error) {
-	u, err := url.Parse(dburl)
+func UpdateURL(dbURL string) (string, error) {
+	u, err := url.Parse(dbURL)
 	if err != nil {
 		return "", err
 	}
-	if user := u.User; user != nil {
-		if _, ok := user.Password(); !ok {
-			uname := user.Username()
-			pass, err := Password(u.Host, uname)
+	if dbUser := u.User; dbUser != nil {
+		if _, ok := dbUser.Password(); !ok {
+			userName := dbUser.Username()
+			pass, err := Password(u.Host, userName)
 			if err != nil {
 				return "", err
 			}
 			if pass != "" {
-				u.User = url.UserPassword(uname, pass)
+				u.User = url.UserPassword(userName, pass)
 			}
 		}
 	}

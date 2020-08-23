@@ -30,20 +30,19 @@ func NewEntryReader(r io.Reader) *EntryReader {
 func (er *EntryReader) Next() (ok bool) {
 	// Get next line, but skip comments and empty lines
 	var line string
+	var fs []string
 	for {
 		if !er.s.Scan() {
 			return
 		}
 		line = er.s.Text()
+		fs = getFields(line)
+		if len(fs) < 5 {
+			continue
+		}
 		if len(line) > 0 && line[0] != '#' {
 			break
 		}
-	}
-
-	fs := getFields(line)
-	if len(fs) < 5 {
-		er.err = ErrNotEnoughFields
-		return
 	}
 
 	er.entry = Entry{fs[0], fs[1], fs[2], fs[3], fs[4]}

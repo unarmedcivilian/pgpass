@@ -1,6 +1,7 @@
 package pgpass
 
 import (
+	"fmt"
 	"os"
 	"os/user"
 	"path"
@@ -17,6 +18,13 @@ func OpenDefault() (f *os.File, err error) {
 	} else if homedir == "" {
 		return
 	}
-	// TODO: check file permission is 0600
+	fileInfo, err := os.Stat(path.Join(homedir, ".pgpass"))
+	if err != nil {
+		return nil, err
+	}
+	if fileInfo.Mode().Perm()&(1<<2) != 0 {
+		return nil, fmt.Errorf("pgpass file too open. set correct permissions using `chmod 600 ~/.pgpass`")
+	}
+
 	return os.Open(path.Join(homedir, ".pgpass"))
 }
